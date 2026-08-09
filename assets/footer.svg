@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 270" width="1200" height="270" role="img" aria-label="NOVA - text to vector to similarity to retrieval">
+
+  <defs>
+    <linearGradient id="fbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#2E2470"/>
+      <stop offset="55%"  stop-color="#161436"/>
+      <stop offset="100%" stop-color="#08090D"/>
+    </linearGradient>
+
+    <linearGradient id="track" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#695CFE"/>
+      <stop offset="50%"  stop-color="#5A7FE0"/>
+      <stop offset="100%" stop-color="#42B3A5"/>
+    </linearGradient>
+
+    <radialGradient id="pulseGlow">
+      <stop offset="0%"   stop-color="#E5C348" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#E5C348" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="fsoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="270" fill="url(#fbg)"/>
+
+  <!-- ── inverted drifting waves along the top edge ────── -->
+  <g transform="translate(0,96) scale(1,-1)">
+    <g>
+      <animateTransform attributeName="transform" type="translate"
+                        from="0 0" to="-1200 0" dur="17s" repeatCount="indefinite"/>
+      <path fill="#695CFE" opacity="0.18"
+            d="M0,0 q75,-28 150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 V140 H0 Z"/>
+    </g>
+  </g>
+
+  <g transform="translate(0,74) scale(1,-1)">
+    <g>
+      <animateTransform attributeName="transform" type="translate"
+                        from="-1200 0" to="0 0" dur="11s" repeatCount="indefinite"/>
+      <path fill="#0D1117" opacity="0.9"
+            d="M0,0 q75,-24 150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 t150,0 V140 H0 Z"/>
+    </g>
+  </g>
+
+  <!-- ── tagline ───────────────────────────────────────── -->
+  <text x="600" y="132" text-anchor="middle" font-size="21" font-weight="700"
+        letter-spacing="6" fill="#EDEBFF"
+        font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif">
+    RETRIEVAL BEFORE GENERATION
+    <animate attributeName="opacity" values="0.75;1;0.75" dur="5s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- ── pipeline track ────────────────────────────────── -->
+  <line x1="210" y1="180" x2="990" y2="180"
+        stroke="url(#track)" stroke-width="2" stroke-linecap="round"
+        stroke-dasharray="5 9" opacity="0.75">
+    <animate attributeName="stroke-dashoffset" from="0" to="-28" dur="1.4s" repeatCount="indefinite"/>
+  </line>
+
+  <!-- travelling pulse -->
+  <circle cy="180" r="22" fill="url(#pulseGlow)">
+    <animate attributeName="cx" values="210;990;210" dur="7s" repeatCount="indefinite"
+             keyTimes="0;0.5;1" calcMode="spline" keySplines="0.4 0 0.2 1;0.4 0 0.2 1"/>
+  </circle>
+  <circle cy="180" r="5.5" fill="#E5C348">
+    <animate attributeName="cx" values="210;990;210" dur="7s" repeatCount="indefinite"
+             keyTimes="0;0.5;1" calcMode="spline" keySplines="0.4 0 0.2 1;0.4 0 0.2 1"/>
+  </circle>
+
+  <!-- ── nodes ─────────────────────────────────────────── -->
+  <g fill="#0D1117" stroke="#695CFE" stroke-width="2.5">
+    <circle cx="210" cy="180" r="9">
+      <animate attributeName="r" values="9;12.5;9" dur="2.8s" begin="0s"    repeatCount="indefinite"/>
+    </circle>
+    <circle cx="470" cy="180" r="9">
+      <animate attributeName="r" values="9;12.5;9" dur="2.8s" begin="0.7s"  repeatCount="indefinite"/>
+    </circle>
+    <circle cx="730" cy="180" r="9" stroke="#5A7FE0">
+      <animate attributeName="r" values="9;12.5;9" dur="2.8s" begin="1.4s"  repeatCount="indefinite"/>
+    </circle>
+    <circle cx="990" cy="180" r="9" stroke="#42B3A5">
+      <animate attributeName="r" values="9;12.5;9" dur="2.8s" begin="2.1s"  repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- ── node labels ───────────────────────────────────── -->
+  <g text-anchor="middle" font-size="12.5" letter-spacing="3.5" fill="#A9A3D8"
+     font-family="'JetBrains Mono', 'Consolas', monospace">
+    <text x="210" y="214">TEXT</text>
+    <text x="470" y="214">VECTOR</text>
+    <text x="730" y="214">SIMILARITY</text>
+    <text x="990" y="214">RETRIEVAL</text>
+  </g>
+
+  <!-- ── signature ─────────────────────────────────────── -->
+  <text x="600" y="248" text-anchor="middle" font-size="11.5" letter-spacing="4" fill="#5E5A85"
+        font-family="'JetBrains Mono', 'Consolas', monospace">
+    N O V A &#183; DESIGNED &amp; DEVELOPED BY EDEN ELFASSY
+  </text>
+
+</svg>
