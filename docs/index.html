@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NOVA · Vector Space Instrument</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="shell">
+  <div id="topbar">
+    <div class="brand">N<em>O</em>VA</div>
+    <div class="tagline">VECTOR SPACE INSTRUMENT</div>
+    <div class="spacer"></div>
+    <div class="stat">docs <b id="sDocs">…</b></div>
+    <div class="stat">vocab <b id="sVocab">…</b></div>
+    <div class="stat">sparsity <b id="sSpars">…</b></div>
+    <div class="stat">idf <b id="sIdfVariant">…</b></div>
+    <div class="stat">fps <b id="sFps">…</b></div>
+  </div>
+
+  <div id="body">
+    <div class="col" id="left">
+      <div class="block">
+        <div class="cap">REQUÊTE</div>
+        <textarea id="q" rows="2">comment agir pour le climat</textarea>
+        <button id="run">LANCER LA RECHERCHE</button>
+        <div class="presets">
+          <button class="preset">quelle place pour l'europe</button>
+          <button class="preset">l'école et la jeunesse</button>
+          <button class="preset">emploi croissance entreprise</button>
+          <button class="preset">sécurité ordre justice</button>
+          <button class="preset">la paix et la défense du monde</button>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <span>mode pas-à-pas</span>
+          <button class="stepbtn" id="stepToggle">ÉTAPE PAR ÉTAPE</button>
+        </div>
+        <div id="stepBar" style="display:none">
+          <div class="stepline" id="stepLine"></div>
+          <button id="stepNext">ÉTAPE SUIVANTE →</button>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="cap">PROJECTION 1680-D → 3D</div>
+        <div class="seg" id="segEmbed">
+          <button data-v="lsa" class="on">LSA / SVD</button>
+          <button data-v="mds">MDS ANGULAIRE</button>
+        </div>
+        <div class="cap" style="margin-top:14px">PLACEMENT DE LA REQUÊTE</div>
+        <div class="seg" id="segPlace">
+          <button data-v="tri" class="on">TRILATÉRATION</button>
+          <button data-v="proj">PROJECTION</button>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="cap">SURFACE DE LA SPHÈRE</div>
+        <div class="seg" id="segSurf">
+          <button data-v="none">AUCUNE</button>
+          <button data-v="field" class="on">CHAMP cos</button>
+          <button data-v="cells">DÉCISION</button>
+        </div>
+        <div class="note" id="surfNote"></div>
+      </div>
+
+      <div class="block">
+        <div class="cap">AFFICHAGE</div>
+        <div class="cap" style="margin-top:0">DENSITÉ</div>
+        <div class="seg" id="segDensity">
+          <button data-v="compact">COMPACT</button>
+          <button data-v="normal" class="on">NORMAL</button>
+          <button data-v="large">LARGE</button>
+        </div>
+        <div class="row" style="margin-top:14px"><span>seuil des arcs</span><input type="range" id="thr" min="0" max="80" value="0"></div>
+        <div class="row"><span></span><span id="thrV">cos ≥ 0.00</span></div>
+        <div class="chk on" id="cFlow"><i></i>flux le long des arcs</div>
+        <div class="chk on" id="cTerms"><i></i>termes (biplot)</div>
+        <div class="chk on" id="cEq"><i></i>cercle d'orthogonalité</div>
+        <div class="chk on" id="cRay"><i></i>rayons depuis l'origine</div>
+        <div class="chk" id="cSpin"><i></i>rotation automatique</div>
+      </div>
+
+      <div class="block" style="border-bottom:none">
+        <div class="cap">TERMES DE LA REQUÊTE <span id="qDrop"></span></div>
+        <div id="qTerms"></div>
+      </div>
+    </div>
+
+    <div id="center">
+      <canvas id="cv"></canvas>
+      <div class="ov" id="ovTL">ESPACE VECTORIEL · <b id="ovMode">LSA</b></div>
+      <div class="ov" id="ovBL"></div>
+      <div class="ov" id="ovBR">
+        <div>variance expliquée <b style="color:var(--ink)" id="ovVar">…</b></div>
+        <div>distorsion angulaire <b class="warn" id="ovDist">…</b></div>
+        <div id="ovFit"></div>
+      </div>
+      <div id="legend"><canvas id="lg" width="132" height="8"></canvas><div id="lgTxt">cos −1 → +1</div></div>
+      <div id="tip"></div>
+      <div id="loading">chargement de l'espace vectoriel…</div>
+    </div>
+
+    <div class="col" id="right">
+      <div class="block">
+        <div class="cap">CLASSEMENT <span>cosinus réel</span></div>
+        <div id="ranking"></div>
+      </div>
+      <div class="block">
+        <div class="cap">DIAGNOSTIC DE PROJECTION</div>
+        <div class="kv"><span>‖q‖ dans le sous-espace doc</span><b id="dSub">…</b></div>
+        <div class="kv"><span>capté par les 3 axes</span><b id="dCap">…</b></div>
+        <div class="kv"><span>résidu de placement</span><b class="hot" id="dRes">…</b></div>
+        <div class="note" id="diagNote"></div>
+      </div>
+      <div class="block" style="border-bottom:none">
+        <div class="cap">PHRASE EXTRAITE</div>
+        <div class="answer" id="ans">…</div>
+        <div class="note" id="ansSrc"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

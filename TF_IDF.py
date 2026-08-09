@@ -150,10 +150,17 @@ def creer_matrice_tf(les_dicos_occurrences_mots):
 
         num_col_doc_courant += 1
 
+        # nombre total de mots (occurrences cumulées) de ce document, pour normaliser le TF.
+        # Sans cette division, un discours long écrase les autres par sa seule longueur.
+        nombre_total_mots_doc_courant = sum(dico_courant_occurrences_mots.values())
+
         for mot, nombre_occurrences_mot in dico_courant_occurrences_mots.items():
 
             # ini data ligne matrice tf
             ligne_matrice_tf = [""] + [0] * nombre_docs_occurrences_mots
+
+            # frequence du terme dans ce document = occurrences / longueur du document
+            frequence_mot = nombre_occurrences_mot / nombre_total_mots_doc_courant
 
             # mot existant dans la matrice tf ?
             if num_col_doc_courant > 1:
@@ -163,20 +170,20 @@ def creer_matrice_tf(les_dicos_occurrences_mots):
             if ligne_mot == -1:
 
                 # ajouter une ligne dans matrice TF pour le nouveau mot;
-                # mettre mot dans col matrice_tf_num_col_mot (0) et nombre_occurrences_mot dans col = num_doc en cours"
+                # mettre mot dans col matrice_tf_num_col_mot (0) et frequence_mot dans col = num_doc en cours"
 
                 # ajouter le mot dans la ligne de la matrice tf
                 ligne_matrice_tf[matrice_tf_discours_presidents_num_col_mot] = mot
 
-                # stockage nombre occurrences mot; col = num doc concerné (num_col_doc_courant)
-                ligne_matrice_tf[num_col_doc_courant] = nombre_occurrences_mot
+                # stockage frequence du mot; col = num doc concerné (num_col_doc_courant)
+                ligne_matrice_tf[num_col_doc_courant] = frequence_mot
 
                 # ajouter la nouvelle ligne dans la matrice tf
                 matrice_tf.append(ligne_matrice_tf)
 
-            # le mot existe, on ajoute le nombre d'occurrences trouvés pour ce mot dans ce doc
+            # le mot existe, on ajoute la frequence trouvée pour ce mot dans ce doc
             else:
-                matrice_tf[ligne_mot][num_col_doc_courant] = nombre_occurrences_mot
+                matrice_tf[ligne_mot][num_col_doc_courant] = frequence_mot
 
     return matrice_tf
 def creer_matrice_idf(nom_dossier_cleaned):
@@ -254,9 +261,8 @@ def creer_matrice_idf(nom_dossier_cleaned):
 
         mot = matrice_presence_mots_dans_docs[i][0]
 
-        #  calculer le score idf et le stocker dans la matrice idf
+        #  calculer le score idf et le stocker dans la matrice idf (pleine précision : voir tests d'arrondi)
         score_idf_mot = ma.log10(nombre_docs / nombre_total_de_docs_contenant_ce_mot)
-        score_idf_mot = round(score_idf_mot, 2)
 
         ligne_matrice_idf = [mot] + [score_idf_mot]
 
@@ -301,10 +307,9 @@ def creer_matrice_tf_idf(nom_dossier_cleaned, les_dicos_occurrences_mots, matric
         # donc pr chaque colonnes de la matrice tf)
         for j in range(1, len(matrice_tf[i])):
 
-            # stocker le score tf-idf pour ce mot, pour le doc courant X
+            # stocker le score tf-idf pour ce mot, pour le doc courant X (pleine précision)
             val_tf = matrice_tf[i][j]
             score_tf_idf = val_tf * val_idf
-            score_tf_idf = round(score_tf_idf, 2)
             ligne_matrice_tf_idf += [score_tf_idf]
 
         matrice_tf_idf.append(ligne_matrice_tf_idf)
@@ -399,25 +404,28 @@ def creer_vecteur_tf_idf_question(question, vecteur_tf_idf_question, matrice_idf
                     break
 
     # calcul du vecteur TF-IDF de la question: Celui-ci s'obtient en multipliant le tf de la question
-    # par le score IDF des mots du corpus
+    # par le score IDF des mots du corpus.
+    # NOTE (bug corrigé) : matrice_idf_corpus doit être la vraie matrice IDF (une ligne par mot,
+    # colonnes [mot, score]) — l'appelant passait auparavant matrice_tf_idf_corpus_transposee
+    # (une ligne par document), et la boucle utilisait len(matrice_idf_corpus) comme borne, ce qui
+    # ne scannait que les 9 premières colonnes du vocabulaire au lieu des 1680. Résultat : la quasi
+    # totalité des mots de la question gardait son compte brut au lieu d'être pondérée par l'IDF.
     i = 0
     for i in range(len(liste_mots_question)):
         mot = liste_mots_question[i]
-        num_col = 0
         n = 0
         score_idf = -1
-        # chercher ce mot dans la matrice_idf_corpus pour trouver son score IDF
-        for num_col in range(len(matrice_idf_corpus)):
+        # chercher ce mot dans la matrice_idf_corpus (une ligne par mot) pour trouver son score IDF
+        for num_ligne in range(len(matrice_idf_corpus)):
             if score_idf != -1: break
-            if matrice_idf_corpus[matrice_tf_idf_corpus_num_ligne_mot][num_col] == mot:
+            if matrice_idf_corpus[num_ligne][matrice_tf_idf_corpus_num_ligne_mot] == mot:
                 # score idf du mot localisé
-                score_idf = matrice_idf_corpus[matrice_tf_idf_corpus_num_ligne_score][num_col]
+                score_idf = matrice_idf_corpus[num_ligne][matrice_tf_idf_corpus_num_ligne_score]
                 # calculer le tf-idf du mot en multipliant son tf par le score idf trouvé
                 for n in range(len(vecteur_tf_idf_question[vecteur_tf_idf_question_num_ligne_mot])):
                     if vecteur_tf_idf_question[vecteur_tf_idf_question_num_ligne_mot][n] == mot:
                         vecteur_tf_idf_question[vecteur_tf_idf_question_num_ligne_score_tf_idf][n] *= score_idf
                         n = 0
-                        num_col = 0
                         break
 
     return vecteur_tf_idf_question

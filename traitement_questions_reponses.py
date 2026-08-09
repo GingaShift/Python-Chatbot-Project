@@ -214,7 +214,11 @@ def generation_reponse_utilisateur_depuis_texte(mot_specifique, nom_doc_pertinen
 
 def traitement_question_utilisateur(question):
 
-    # 1) Nettoyer la question
+    # 1) Nettoyer la question : minuscules d'abord (comme pour le corpus dans
+    # convertir_texte_en_minuscules), puis suppression de la ponctuation. Sans le .lower(),
+    # un mot capitalisé en début de phrase ("Climat") ne matchait jamais le vocabulaire
+    # (toujours minuscule), et était silencieusement ignoré.
+    question = question.lower()
     question = sm.nettoyer_texte(question)
 
     # supprimer d'eventuels retour à la ligne parasites en fin de chaine
@@ -225,9 +229,11 @@ def traitement_question_utilisateur(question):
     # et M colonnes (nbre total de mots)
     tf_idf.vecteur_tf_idf_question = tf_idf.ini_matrice_tf_idf_question(tf_idf.matrice_tf_idf_corpus_transposee)
 
-    # remplir les scores du vecteur_tf_idf_question en fonction des data dispos dans matrice_tf_idf_corpus_transposee
+    # remplir les scores du vecteur_tf_idf_question ; la pondération IDF vient de la vraie matrice
+    # IDF (une ligne par mot), pas de matrice_tf_idf_corpus_transposee (une ligne par document) —
+    # voir la note dans creer_vecteur_tf_idf_question.
     tf_idf.vecteur_tf_idf_question = tf_idf.creer_vecteur_tf_idf_question(question, tf_idf.vecteur_tf_idf_question,
-                                                                          tf_idf.matrice_tf_idf_corpus_transposee)
+                                                                          tf_idf.matrice_idf_corpus)
 
     # 3) trouver le num du doc le plus pertinent à la question posée
     num_doc_pertinent = 0

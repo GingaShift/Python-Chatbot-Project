@@ -493,6 +493,28 @@ def cosine_similarity(a: dict[str, float], b: dict[str, float]) -> float:
 
 <br>
 
+### 🩹 A bug the interpretability work found — before / after
+
+Building a 3D inspector for this vector space meant tracing every number back to its source, which surfaced a real bug in `creer_vecteur_tf_idf_question` (`TF_IDF.py`): the query-weighting step was being handed the wrong matrix.
+
+That function multiplies each query term's raw count by its corpus-wide IDF. The call site (`traitement_questions_reponses.py`) was passing `matrice_tf_idf_corpus_transposee` — one row **per document** — instead of `matrice_idf_corpus` — one row **per word**. The lookup loop then bounded itself on `len(matrice_idf_corpus)`, which, given the wrong matrix, evaluated to `9` (8 documents + a header row) instead of `1680` (the vocabulary size). In practice, only query terms that happened to land in the first 9 vocabulary columns ever got IDF-weighted; every other term silently kept its raw count, as if `idf = 1`.
+
+The default demo query for the new visualizer exposes it cleanly:
+
+| | query weights | best match | pivot term |
+|---|---|---|---|
+| **Before** | `le`=1, `pour`=1, `agir`=1, `climat`=1, `comment`=1 — *all equal, no IDF applied* | Macron · cos = **0.049** | **`le`** *(a stopword, idf = 0.0)* |
+| **After** | `agir`=0.602, `climat`=0.903, `comment`=0.903 — *`le`, `pour` correctly drop out (idf = 0.0)* | Macron · cos = **0.064** | **`climat`** |
+
+Two more issues surfaced the same way and were fixed alongside it, at the source — not patched around in a downstream script:
+
+- **No lowercasing on the user's question** (`traitement_question_utilisateur`): the corpus is lowercased before cleaning, but the incoming question never was. `"Comment agir pour le Climat"` silently dropped both capitalized words — exactly the ones carrying the signal.
+- **Term frequency was a raw count, not a frequency** (`creer_matrice_tf`): `tf(t, d)` was never divided by document length, so a longer speech systematically outweighed a shorter one on every shared term — the exact distortion TF-IDF's normalization exists to prevent.
+
+Every score in the engine — IDF, TF-IDF, cosine similarity — now also carries full floating-point precision instead of being rounded mid-pipeline (the old code did `round(x, 2)` on IDF and TF-IDF, and `round(x, 3)` on cosine similarity, before the value was ever used in another computation). Display-time rounding for the UI's text answers is unaffected; what changed is that the *engine's own arithmetic* no longer loses precision before it's done using the number.
+
+<br>
+
 ### Complexity
 
 | Operation | Time | Space | Notes |

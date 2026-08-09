@@ -51,4 +51,4 @@ def calcul_similarite_vecteurs(vecteur_A, vecteur_B):
     similarite_vecteurs = 0
     similarite_vecteurs = produite_scalaire_vecteur_AB / norme_vecteur_AB
 
-    return round(similarite_vecteurs, 3)
+    return similarite_vecteurs
