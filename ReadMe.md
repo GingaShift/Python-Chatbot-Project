@@ -29,7 +29,9 @@
 <img src="https://img.shields.io/github/last-commit/eden2807/projetchatbotpythonL1?style=for-the-badge&labelColor=0D1117&color=E5C348&logo=github&logoColor=white" alt="Last commit">
 </a>
 <img src="https://img.shields.io/github/languages/code-size/eden2807/projetchatbotpythonL1?style=for-the-badge&labelColor=0D1117&color=8B5CF6" alt="Code size">
-<img src="https://img.shields.io/badge/dependencies-0-22C55E?style=for-the-badge&labelColor=0D1117" alt="Zero dependencies">
+<img src="https://img.shields.io/badge/engine_dependencies-0-22C55E?style=for-the-badge&labelColor=0D1117" alt="Zero engine dependencies">
+<img src="https://img.shields.io/badge/desktop_UI-customtkinter-8B5CF6?style=for-the-badge&labelColor=0D1117" alt="Desktop UI dependency">
+<img src="https://img.shields.io/badge/browser_visualizer-0_deps-22C55E?style=for-the-badge&labelColor=0D1117" alt="Zero visualizer dependencies">
 
 <br>
 
@@ -114,8 +116,8 @@ model:        Vector Space Model
 weighting:    TF-IDF (hand-rolled)
 similarity:   Cosine
 grounding:    Source-anchored
-interface:    Tkinter
-dependencies: none (stdlib only)
+interface:    Tkinter (customtkinter) · browser (zero-dep)
+dependencies: customtkinter (desktop UI only) — engine is stdlib-only
 ```
 
 <br>
@@ -531,8 +533,13 @@ Every score in the engine — IDF, TF-IDF, cosine similarity — now also carrie
 
 | File | Responsibility |
 |:---|:---|
-| `main.py` | Application entry point · Tkinter UI · event loop |
-| `functions.py` | Preprocessing · TF-IDF · similarity · retrieval logic |
+| `main.py` | Desktop app entry point · customtkinter UI · event loop |
+| `TF_IDF.py` | TF-IDF matrices · IDF · query vectorization |
+| `math_vecteurs.py` | Vector ops · cosine similarity |
+| `string_manager.py` | Text cleaning · sentence extraction |
+| `presidents.py` | Corpus/file bookkeeping · corpus-wide stats |
+| `export_vectorspace.py` | Computes `docs/data/vectorspace.json` for the browser visualizer |
+| `docs/` | Interactive 3D vector-space visualizer — static site, zero dependencies |
 | `speeches/` | Raw corpus — untouched source of truth |
 | `cleaned/` | Normalized corpus — reproducible intermediate artifact |
 
@@ -593,12 +600,13 @@ That makes NOVA useful not only as a chatbot prototype, but as a small **laborat
 ## 🚀 05 · Quickstart
 
 > [!NOTE]
-> **Zero dependencies.** NOVA runs on a clean Python 3 install — the standard library is all it needs.
+> **Two things you can run here.** The retrieval engine (TF-IDF, cosine, everything under [🧮 03](#-03--the-mathematics)) is pure Python standard library — nothing to install to compute anything. The desktop UI (`main.py`) now uses [`customtkinter`](https://pypi.org/project/customtkinter/) for its look, so it needs one `pip install`. The browser-based 3D vector-space visualizer (`docs/`) has **zero dependencies** — plain HTML/CSS/JS, no build step, no CDN, no npm.
 
 ### Requirements
 
 <img src="https://img.shields.io/badge/Python-3.9+-3776AB?style=flat-square&logo=python&logoColor=white">
 <img src="https://img.shields.io/badge/Tkinter-bundled_with_Python-E5C348?style=flat-square">
+<img src="https://img.shields.io/badge/customtkinter-desktop_UI_only-8B5CF6?style=flat-square">
 <img src="https://img.shields.io/badge/OS-Windows_|_macOS_|_Linux-42B3A5?style=flat-square">
 
 ### Installation
@@ -606,12 +614,10 @@ That makes NOVA useful not only as a chatbot prototype, but as a small **laborat
 ```bash
 # 1 · Clone
 git clone https://github.com/eden2807/projetchatbotpythonL1.git
-
-# 2 · Enter
 cd projetchatbotpythonL1
 
-# 3 · Launch
-python main.py
+# 2 · Install the one dependency (desktop UI only)
+pip install -r requirements.txt
 ```
 
 <details>
@@ -634,11 +640,56 @@ sudo pacman -S tk
 
 </details>
 
-### Usage
+### Run the desktop app
 
-1. Launch the application — the corpus is indexed at startup.
+```bash
+python main.py
+```
+
+1. The corpus is indexed at startup (`speeches/` → `cleaned/` → TF-IDF matrix, in memory).
 2. Type a question in natural language (French).
 3. NOVA returns the best-matching sentence, its source document, and the similarity score.
+
+<br>
+
+### Run the interactive 3D vector-space visualizer
+
+The browser instrument reads a pre-computed snapshot of the vector space (`docs/data/vectorspace.json`) — it does not talk to `main.py` or run any Python at request time. It needs a real HTTP server (not a double-clicked `file://` page) because it `fetch()`es its data:
+
+```bash
+cd docs
+python -m http.server 8000
+```
+
+Then open **http://localhost:8000** in a browser. Query box on the left, 3D LSA/MDS sphere in the center, ranking and extracted answer on the right. `Ctrl+C` in the terminal to stop the server.
+
+<details>
+<summary><b>Regenerating the vector-space data</b> (after adding/editing a speech in <code>speeches/</code>)</summary>
+
+<br>
+
+Run from the **repository root**, not from `docs/` — it rebuilds `docs/data/vectorspace.json` from the current corpus using the real engine functions (`TF_IDF.py`, `math_vecteurs.py`, …), including the Jacobi eigendecomposition and the LSA/MDS projections:
+
+```bash
+python export_vectorspace.py
+```
+
+Two IDF weighting variants are available (`export_vectorspace.py`'s own flag, independent of `main.py`'s engine):
+
+```bash
+python export_vectorspace.py --idf smooth    # default — lowest angular distortion on this corpus
+python export_vectorspace.py --idf classic   # the same formula main.py's engine uses
+```
+
+Reload the browser page afterward — no server restart needed.
+
+</details>
+
+### Run the tests
+
+```bash
+python -m unittest discover -s tests
+```
 
 <br>
 
@@ -647,20 +698,32 @@ sudo pacman -S tk
 ```text
 NOVA
 │
-├── 📁 speeches/          raw document corpus  ·  untouched source of truth
+├── 📁 speeches/                raw document corpus  ·  untouched source of truth
 │   ├── Nomination_Chirac1.txt
 │   ├── Nomination_Macron.txt
 │   └── ...
 │
-├── 📁 cleaned/           normalized corpus  ·  reproducible intermediate
+├── 📁 cleaned/                 normalized corpus  ·  reproducible intermediate
 │
-├── 📁 assets/            header.svg · footer.svg · demo.gif
+├── 📁 docs/                    interactive 3D vector-space visualizer (static site)
+│   ├── index.html · style.css · app.js
+│   └── data/vectorspace.json   pre-computed embeddings, generated by export_vectorspace.py
 │
-├── 🐍 main.py            application entry point · Tkinter interface
+├── 📁 tests/                   unittest suite
 │
-├── 🐍 functions.py       preprocessing · TF-IDF · similarity · retrieval
+├── 📁 assets/                  header.svg · footer.svg · demo.gif
 │
-├── 📄 README.md          system documentation
+├── 🐍 main.py                  desktop app entry point · customtkinter interface
+├── 🐍 ui_theme.py              desktop UI colors, labels, small testable UI rules
+├── 🐍 TF_IDF.py                TF-IDF matrices · query vectorization
+├── 🐍 math_vecteurs.py         vector ops · cosine similarity
+├── 🐍 string_manager.py        text cleaning · sentence extraction
+├── 🐍 presidents.py            corpus/file bookkeeping · corpus-wide stats
+├── 🐍 files_manager.py / lists_manager.py   small IO/list utilities
+├── 🐍 export_vectorspace.py    computes the JSON the browser visualizer reads
+│
+├── 📄 requirements.txt         desktop UI's one dependency (customtkinter)
+├── 📄 README.md                system documentation
 │
 └── 📄 LICENSE
 ```
